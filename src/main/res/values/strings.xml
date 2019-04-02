@@ -1,4 +1,13 @@
 <resources>
     <string name="app_name">My Application</string>
     <string name="gugu">杨丞琳演唱会</string>
+    <string name="btn_label">ButtonA</string>
+    <string name="inp_hint">You can input</string>
+    <string name="lable_add1">+1 point</string>
+    <string name="lable_add2">+2 point</string>
+    <string name="lable_add3">+3 point</string>
+    <string name="btn_reset_label">Reset</string>
+    <string name="_0">0</string>
+
+
 </resources>
