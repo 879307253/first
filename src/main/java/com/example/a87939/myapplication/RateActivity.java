@@ -66,6 +66,6 @@ TextView show;
             val=r*h;
         }
         String s=String.format("%.2f", val);
-        show.setText(s);
+        show.setText(s)；
     }
 }
