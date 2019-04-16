@@ -12,5 +12,7 @@
     <string name="btn_euro_label">Euro</string>
     <string name="btn_won_label">Won</string>
     <string name="rmb_label">Input RMB</string>
+    <string name="btn_save_label">Save</string>
+    <string name="btn_open_concfg_label">Config</string>
 
 </resources>
