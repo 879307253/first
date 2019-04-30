@@ -17,13 +17,15 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 
 public class RateActivity extends AppCompatActivity implements Runnable{
 
@@ -35,6 +37,7 @@ private float wonRate=0.3f;
     EditText rmb;
     TextView show;
     Handler handler;
+    private String str1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,9 +63,17 @@ private float wonRate=0.3f;
              @Override
              public void handleMessage(Message msg) {
                  if (msg.what == 5) {
-                     String str = (String) msg.obj;
-                     Log.i(TAG, "handleMessage: getMessage msg =" + str);
-                     show.setText(str);
+                     Bundle bdl= (Bundle) msg.obj;
+                     dollarRate=bdl.getFloat("dollar-rate");
+                     euroRate=bdl.getFloat("euro-rate");
+                     wonRate=bdl.getFloat("won-rate");
+
+                     Log.i(TAG,"handleMessage:dollarRate:"+dollarRate);
+                     Log.i(TAG,"handleMessage:euroRate:"+euroRate);
+                     Log.i(TAG,"handleMessage:wonRate:"+wonRate);
+
+                     Toast.makeText(RateActivity.this,"汇率已更新",Toast.LENGTH_SHORT).show();;
+
                  }
                  super.handleMessage(msg);
              }
@@ -98,7 +109,6 @@ private float wonRate=0.3f;
     public void openOne(View btn){
         openConfig();
     }
-
     private void openConfig() {
         Intent config =new Intent(this,ConfigActivity.class);
         config.putExtra("dollar_rate_key",dollarRate);
@@ -111,20 +121,17 @@ private float wonRate=0.3f;
        // startActivity(config);
         startActivityForResult(config,1);
     }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.rate,menu);
         return true;
     }
-
     public boolean onOptionsItemSelected(MenuItem item) {
         if(item.getItemId()==R.id.menu_set){
             openConfig();
         }
         return super.onOptionsItemSelected(item);
     }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
        if(requestCode==1 && resultCode==2){
@@ -148,27 +155,27 @@ private float wonRate=0.3f;
     }
     public void run(){
         Log.i(TAG,"run: run()......");
-        for(int i =1;i<3;i++){
-            Log.i(TAG,"run: i=" +i);
             try{
                 //当前停止两秒钟,2000毫秒
-                Thread.sleep(2000);
+                Thread.sleep(3000);
 
             }
             catch (InterruptedException e){
                 e.printStackTrace();
             }
-        }
+            //用于保存获取的汇率
+            Bundle bundle=new Bundle();
+
         //获取Msg对象,用于返回主线程
-        Message msg = handler.obtainMessage(5);
+     /*   Message msg = handler.obtainMessage(5);
         //what数据是整数，用于标记当前messa属性，便于接受信息进行比对,可把what放在上面写
         //msg.what = 5;
         msg.obj="Hello from run()";
         handler.sendMessage(msg);
-
+*/
 
         //获取网络数据
-        URL url=null;
+       /* URL url=null;
         try {
              url = new URL("https://www.currencydo.com/bank_zg/");
             HttpURLConnection http = (HttpURLConnection) url.openConnection();
@@ -176,18 +183,66 @@ private float wonRate=0.3f;
             InputStream in = http.getInputStream();
             String html = inputStream2String(in);
             Log.i(TAG,"run:html="+html );
+            Document doc=Jsoup.parse(html);
         }catch (MalformedURLException e){
             e.printStackTrace();
         }catch (IOException e){
             e.printStackTrace();
         }
+*/
+        try{
+        Document doc = Jsoup.connect("http://www.usd-cny.com/bankofchina.htm").get();
+        Log.i(TAG, "run: "+doc.title());
+      Elements tables= doc.getElementsByTag("table");
+      /*int i=1;
+      for(Element table : tables){
+          Log.i(TAG,"run:table["+i+"]="+table);
+          i++;
+      }*/
+      Element table6=tables.get(0);
+    Log.i(TAG,"run:table6="+table6);
+    Elements tds=table6.getElementsByTag("td");
 
+    for(int i=0;i<tds.size();i+=6){
+        Element td1=tds.get(i);
+        Element td2=tds.get(i+5);
+        Log.i(TAG,"run:"+td1.text()+"==>"+td2.text());
+        String str1 = td1.text();
+        String val = td2.text();
+
+        if("美元".equals(td1.text())){
+            bundle.putFloat("dollar-rate",100/Float.parseFloat(val));
+        }
+       else if("欧元".equals(td1.text())){
+            bundle.putFloat("euro-rate",100/Float.parseFloat(val));
+        }
+       else if("韩元".equals(td1.text())){
+            bundle.putFloat("won-rate",100/Float.parseFloat(val));
+        }
     }
+   /* for(Element td:tds){
+        Log.i(TAG,"run:td="+td);
+        Log.i(TAG,"run:text="+td.text());
+        Log.i(TAG,"run:html="+td.html());
+    }*/
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
+    //bundle中保存所获取的汇率
+        Message msg = handler.obtainMessage(5);
+        //what数据是整数，用于标记当前messa属性，便于接受信息进行比对,可把what放在上面写
+        msg.obj=bundle;
+        handler.sendMessage(msg);
+    }
+
+
+
     private String inputStream2String(InputStream inputStream) throws IOException{
         final int bufferSize = 1024;
         final char[] buffer = new char[bufferSize];
         final StringBuilder out = new StringBuilder();
-        Reader in = new InputStreamReader(inputStream, "UTF-8");
+        Reader in = new InputStreamReader(inputStream, "gb2312");
         for (; ; ) {
             int rsz = in.read(buffer, 0, buffer.length);
             if (rsz < 0)
