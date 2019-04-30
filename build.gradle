@@ -31,7 +31,7 @@ dependencies {
 
 allprojects {
     repositories {
-        maven {url'http://maven.alyun.com/nexus/content/groups/public/'}
+        maven { url 'http://maven.alyun.com/nexus/content/groups/public/' }
         jcenter()
     }
 }

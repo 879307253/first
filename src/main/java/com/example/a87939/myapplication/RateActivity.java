@@ -26,6 +26,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 public class RateActivity extends AppCompatActivity implements Runnable{
 
@@ -33,6 +36,7 @@ public class RateActivity extends AppCompatActivity implements Runnable{
 private final String TAG ="Rate";
 private float dollarRate=0.1f;
 private float euroRate=0.2f;
+private String updateData="";
 private float wonRate=0.3f;
     EditText rmb;
     TextView show;
@@ -46,15 +50,32 @@ private float wonRate=0.3f;
         rmb=findViewById(R.id.rmb);
         show=findViewById(R.id.showOut);
         //获取so里保存的数据
-        SharedPreferences sharedPreferences= getSharedPreferences("myrate", Activity.MODE_PRIVATE);
+        final SharedPreferences sharedPreferences= getSharedPreferences("myrate", Activity.MODE_PRIVATE);
         SharedPreferences sp=PreferenceManager.getDefaultSharedPreferences(this);
         //一个app建议一个配置文件，第二个方法名称不能改，少量数据可以用配置文件，其他的放在其他文件
         dollarRate = sharedPreferences.getFloat("dollar_rate",0.0f);
         euroRate = sharedPreferences.getFloat("euro_rate",0.0f);
         wonRate = sharedPreferences.getFloat("won_rate",0.0f);
+        updateData = sharedPreferences.getString("update_data","");
+          //创建一个当前系统时间
+        Date today = Calendar.getInstance().getTime();
+        SimpleDateFormat sdf=new SimpleDateFormat("yyyy-mm-dd");
+        final String todayStr=sdf.format(today);
         Log.i(TAG,"onCreate: sp dollarRate=" + dollarRate);
         Log.i(TAG,"onCreate: sp euroRate=" + euroRate);
         Log.i(TAG,"onCreate: sp wonRate=" + wonRate);
+        Log.i(TAG,"onCreate: sp updateDate=" + updateData);
+        Log.i(TAG,"onCreate:todayStr=" + todayStr);
+        //判断时间
+        if(todayStr.equals(updateData)){
+            Log.i(TAG,"onCreate=需要更新");
+            //开启子线程
+            Thread t =new Thread(this);
+            t.start();
+        }
+        else{
+            Log.i(TAG,"onCreate 不需要更新");
+        }
         //开启子线程,当前对象不要忘掉，不然不能执行run
         Thread t = new Thread(this);
         t.start();
@@ -71,6 +92,15 @@ private float wonRate=0.3f;
                      Log.i(TAG,"handleMessage:dollarRate:"+dollarRate);
                      Log.i(TAG,"handleMessage:euroRate:"+euroRate);
                      Log.i(TAG,"handleMessage:wonRate:"+wonRate);
+
+                     //保存更新的日期
+                     SharedPreferences sharedPreferences1=getSharedPreferences("myrate",Activity.MODE_PRIVATE);
+                     SharedPreferences.Editor editor=sharedPreferences.edit();
+                     editor.putFloat("dollar_rate",dollarRate);
+                     editor.putFloat("euro_rate",euroRate);
+                     editor.putFloat("won_rate",wonRate);
+                     editor.putString("update_date",todayStr);
+                     editor.apply();
 
                      Toast.makeText(RateActivity.this,"汇率已更新",Toast.LENGTH_SHORT).show();;
 
@@ -129,6 +159,14 @@ private float wonRate=0.3f;
     public boolean onOptionsItemSelected(MenuItem item) {
         if(item.getItemId()==R.id.menu_set){
             openConfig();
+        }
+        else if(item.getItemId()==R.id.open_list)
+        {
+            Intent list =new Intent(this,RateListActivity.class);
+
+
+            // startActivity(config);
+            startActivity(list);
         }
         return super.onOptionsItemSelected(item);
     }
@@ -190,20 +228,26 @@ private float wonRate=0.3f;
             e.printStackTrace();
         }
 */
+       bundle= getFromUsdCny();
+    //bundle中保存所获取的汇率
+        Message msg = handler.obtainMessage(5);
+        //what数据是整数，用于标记当前messa属性，便于接受信息进行比对,可把what放在上面写
+        msg.obj=bundle;
+        handler.sendMessage(msg);
+    }
+//从bankofchina获取数据
+    private Bundle getFromBOC() {
+        Bundle bundle=new Bundle();
+        Document doc = null;
         try{
-        Document doc = Jsoup.connect("http://www.usd-cny.com/bankofchina.htm").get();
+     doc = Jsoup.connect("http://www.boc.cn/sourcedb/whpj/").get();
         Log.i(TAG, "run: "+doc.title());
       Elements tables= doc.getElementsByTag("table");
-      /*int i=1;
-      for(Element table : tables){
-          Log.i(TAG,"run:table["+i+"]="+table);
-          i++;
-      }*/
-      Element table6=tables.get(0);
-    Log.i(TAG,"run:table6="+table6);
-    Elements tds=table6.getElementsByTag("td");
+      Element table2=tables.get(1);
+    Log.i(TAG,"run:table2="+table2);
+    Elements tds=table2.getElementsByTag("td");
 
-    for(int i=0;i<tds.size();i+=6){
+    for(int i=0;i<tds.size();i+=8){
         Element td1=tds.get(i);
         Element td2=tds.get(i+5);
         Log.i(TAG,"run:"+td1.text()+"==>"+td2.text());
@@ -229,15 +273,53 @@ private float wonRate=0.3f;
         catch (IOException e){
             e.printStackTrace();
         }
-    //bundle中保存所获取的汇率
-        Message msg = handler.obtainMessage(5);
-        //what数据是整数，用于标记当前messa属性，便于接受信息进行比对,可把what放在上面写
-        msg.obj=bundle;
-        handler.sendMessage(msg);
+        return bundle;
     }
 
+    private Bundle getFromUsdCny() {
+        Bundle bundle=new Bundle();
+        Document doc = null;
+        try{
+            doc = Jsoup.connect("http://www.usd-cny.com/bankofchina.htm").get();
+            Log.i(TAG, "run: "+doc.title());
+            Elements tables= doc.getElementsByTag("table");
+      /*int i=1;
+      for(Element table : tables){
+          Log.i(TAG,"run:table["+i+"]="+table);
+          i++;
+      }*/
+            Element table6=tables.get(0);
+            Log.i(TAG,"run:table6="+table6);
+            Elements tds=table6.getElementsByTag("td");
 
+            for(int i=0;i<tds.size();i+=6){
+                Element td1=tds.get(i);
+                Element td2=tds.get(i+5);
+                Log.i(TAG,"run:"+td1.text()+"==>"+td2.text());
+                String str1 = td1.text();
+                String val = td2.text();
 
+                if("美元".equals(td1.text())){
+                    bundle.putFloat("dollar-rate",100/Float.parseFloat(val));
+                }
+                else if("欧元".equals(td1.text())){
+                    bundle.putFloat("euro-rate",100/Float.parseFloat(val));
+                }
+                else if("韩元".equals(td1.text())){
+                    bundle.putFloat("won-rate",100/Float.parseFloat(val));
+                }
+            }
+   /* for(Element td:tds){
+        Log.i(TAG,"run:td="+td);
+        Log.i(TAG,"run:text="+td.text());
+        Log.i(TAG,"run:html="+td.html());
+    }*/
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
+        return bundle;
+    }
     private String inputStream2String(InputStream inputStream) throws IOException{
         final int bufferSize = 1024;
         final char[] buffer = new char[bufferSize];

@@ -14,5 +14,6 @@
     <string name="rmb_label">Input RMB</string>
     <string name="btn_save_label">Save</string>
     <string name="btn_open_concfg_label">Config</string>
+    <string name="label_open_list">OpenList</string>
 
 </resources>
