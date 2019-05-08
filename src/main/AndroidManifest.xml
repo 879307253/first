@@ -14,16 +14,18 @@
         android:usesCleartextTraffic="true">
         <activity android:name=".MainActivity" />
         <activity android:name=".Mm" />
-        <activity android:name=".SecondActivity"></activity>
-        <activity android:name=".RateActivity">
+        <activity android:name=".SecondActivity" />
+        <activity android:name=".RateActivity" />
+        <activity android:name=".ConfigActivity" />
+        <activity android:name=".RateListActivity" />
+        <activity android:name=".Main2Activity">
             <intent-filter>
                 <action android:name="android.intent.action.Main" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ConfigActivity" />
-        <activity android:name=".RateListActivity"></activity>
+        <activity android:name=".RateCalcActivity"></activity>
     </application>
 
 </manifest>

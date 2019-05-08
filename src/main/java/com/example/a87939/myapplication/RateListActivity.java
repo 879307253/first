@@ -15,6 +15,7 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static android.content.ContentValues.TAG;
@@ -52,7 +53,7 @@ public class RateListActivity extends ListActivity implements Runnable{
     }
     public void run(){
 //获取网络数据，放入list带入主线程
-        List<String> retList =new ArrayList<String>();
+        List<HashMap<String,String>> retList =new ArrayList<HashMap<String, String>>();
         Document doc = null;
         try{
             Thread.sleep(3000);
@@ -69,17 +70,9 @@ public class RateListActivity extends ListActivity implements Runnable{
                 Log.i(TAG,"run:"+td1.text()+"==>"+td2.text());
                 String str1 = td1.text();
                 String val = td2.text();
-                retList.add(str1 + "==>" +val);
-                
-
-                
-      
+                HashMap<String,String > map=new HashMap<String, String>();
             }
-   /* for(Element td:tds){
-        Log.i(TAG,"run:td="+td);
-        Log.i(TAG,"run:text="+td.text());
-        Log.i(TAG,"run:html="+td.html());
-    }*/
+
         }
         catch (IOException e){
             e.printStackTrace();

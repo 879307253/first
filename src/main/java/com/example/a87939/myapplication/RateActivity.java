@@ -162,7 +162,7 @@ private float wonRate=0.3f;
         }
         else if(item.getItemId()==R.id.open_list)
         {
-            Intent list =new Intent(this,RateListActivity.class);
+            Intent list =new Intent(this,Main2Activity.class);
 
 
             // startActivity(config);
@@ -204,30 +204,7 @@ private float wonRate=0.3f;
             //用于保存获取的汇率
             Bundle bundle=new Bundle();
 
-        //获取Msg对象,用于返回主线程
-     /*   Message msg = handler.obtainMessage(5);
-        //what数据是整数，用于标记当前messa属性，便于接受信息进行比对,可把what放在上面写
-        //msg.what = 5;
-        msg.obj="Hello from run()";
-        handler.sendMessage(msg);
-*/
 
-        //获取网络数据
-       /* URL url=null;
-        try {
-             url = new URL("https://www.currencydo.com/bank_zg/");
-            HttpURLConnection http = (HttpURLConnection) url.openConnection();
-             //需要进行转换，返回一个输入流
-            InputStream in = http.getInputStream();
-            String html = inputStream2String(in);
-            Log.i(TAG,"run:html="+html );
-            Document doc=Jsoup.parse(html);
-        }catch (MalformedURLException e){
-            e.printStackTrace();
-        }catch (IOException e){
-            e.printStackTrace();
-        }
-*/
        bundle= getFromUsdCny();
     //bundle中保存所获取的汇率
         Message msg = handler.obtainMessage(5);
