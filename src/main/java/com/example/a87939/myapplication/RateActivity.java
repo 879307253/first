@@ -162,11 +162,12 @@ private float wonRate=0.3f;
         }
         else if(item.getItemId()==R.id.open_list)
         {
-            Intent list =new Intent(this,Main2Activity.class);
-
-
+           Intent list =new Intent(this,RateListActivity.class);
+            //打开列表窗口
             // startActivity(config);
-            startActivity(list);
+           startActivity(list);
+            //测试数据库
+   //
         }
         return super.onOptionsItemSelected(item);
     }
