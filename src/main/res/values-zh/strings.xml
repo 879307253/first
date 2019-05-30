@@ -2,4 +2,7 @@
 <resources>
     <string name="app_name">我的应用</string>
     <string name="gugu">你好世界！</string>
+    <string name="rdo_home_label">首页</string>
+    <string name="rdo_func_label">功能</string>
+    <string name="rdo_setting_label">设置</string>
 </resources>
